@@ -12,6 +12,15 @@ const router = createRouter({
       path: '/ResetPwd',
       name: 'ResetPwd',
       component: () => import('../views/ResetPwd/index.vue')
+    },
+    {
+      path: '/',
+      redirect: '/index'
+    },
+    {
+      path: '/index',
+      name: 'index',
+      component: () => import('../views/Index/index.vue')
     }
   ]
 })

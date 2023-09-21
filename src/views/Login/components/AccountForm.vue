@@ -62,6 +62,10 @@ import { reactive, ref, onMounted } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { accountFormRules } from '../rules'
 import utils from '@/utils/utils'
+import { accountLogin } from '@/api/user'
+import { useUserStore } from '@/stores/user'
+import router from '../../../router/index'
+const store = useUserStore()
 const ruleFormRef = ref<FormInstance>()
 
 const accountForm = reactive({
@@ -81,14 +85,32 @@ const accountForm = reactive({
 // 提交表单的方法
 const submitForm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
-  await formEl.validate((valid) => {
-    if (valid) {
-      // 1.点击登录按钮，判断是否保存用户名，如果保存用户名，则将用户名和保存的状态存储到本地
-      console.log(accountForm.saveUserName)
-      console.log('submit!')
-      useSaveL()
+  await formEl.validate(async (valid, fields) => {
+    if (!valid) {
+      for (const key in fields) {
+        utils.showError(fields[key][0].message!)
+      }
+      return
+    }
+    // 1.点击登录按钮，判断是否保存用户名，如果保存用户名，则将用户名和保存的状态存储到本地
+    useSaveL()
+    console.log('error submit!')
+
+    // 2.调用登录接口
+    const res = await accountLogin({
+      username: accountForm.username,
+      password: accountForm.password,
+      imgcode: accountForm.imgcode
+    })
+    if (res.code === 888) {
+      // 存储到pinia
+      store.setToken(res.token!)
+      store.setUser(res.data!)
+
+      // 跳转到主页
+      router.push('/')
     } else {
-      console.log('error submit!')
+      console.log(res.message)
     }
   })
 }
